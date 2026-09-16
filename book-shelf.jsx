@@ -1,5 +1,14 @@
 import React, {useState, useEffect, useCallback} from "react";
-import {Plus, X, BookOpen, Search, Loader2, Trash2} from "lucide-react";
+import {
+  Plus,
+  X,
+  BookOpen,
+  Search,
+  Loader2,
+  Trash2,
+  Check,
+  RotateCcw,
+} from "lucide-react";
 
 const COLORS = {
   bg: "#1B1E27",
@@ -45,6 +54,26 @@ function searchQuery(value) {
   return /^(?:\d{10}|\d{13})$/.test(compact) ? `isbn:${compact}` : value;
 }
 
+function getUrlIsbn() {
+  const params = new URLSearchParams(window.location.search);
+  const candidates = [
+    params.get("isbn"),
+    params.get("isbn10"),
+    params.get("isbn13"),
+    params.get("isbn_10"),
+    params.get("isbn_13"),
+  ];
+  const pathAndQuery = `${window.location.pathname} ${window.location.search}`;
+  candidates.push(pathAndQuery);
+  return (
+    candidates
+      .map((value) => value || "")
+      .map((value) => value.replace(/[-\s]/g, ""))
+      .find((value) => /(?:^|\D)(?:\d{10}|\d{13})(?:$|\D)/.test(value))
+      ?.match(/(?:\d{10}|\d{13})/)?.[0] || null
+  );
+}
+
 function toBookResult(doc) {
   return {
     id:
@@ -69,6 +98,22 @@ function toBookResult(doc) {
   };
 }
 
+function bookFromResult(item) {
+  const info = item.volumeInfo || {};
+  const isbnObj =
+    (info.industryIdentifiers || []).find((id) => id.type === "ISBN_13") ||
+    (info.industryIdentifiers || [])[0];
+  return {
+    id: item.id,
+    title: info.title || "Untitled",
+    authors: info.authors || [],
+    thumbnail: secureImg(info.imageLinks?.thumbnail),
+    publishedDate: info.publishedDate || "",
+    isbn: isbnObj?.identifier || "",
+    status: "to-read",
+  };
+}
+
 export default function BookShelfLibrary() {
   const [view, setView] = useState("shelf");
   const [books, setBooks] = useState([]);
@@ -84,7 +129,11 @@ export default function BookShelfLibrary() {
     try {
       const stored = window.localStorage.getItem(STORAGE_KEY);
       const parsed = stored ? JSON.parse(stored) : [];
-      setBooks(Array.isArray(parsed) ? parsed : []);
+      setBooks(
+        Array.isArray(parsed)
+          ? parsed.map((book) => ({...book, status: book.status || "to-read"}))
+          : [],
+      );
     } catch (e) {
       setBooks([]);
     } finally {
@@ -102,18 +151,22 @@ export default function BookShelfLibrary() {
     }
   }, []);
 
+  const searchBooks = async (value) => {
+    const r = await fetch(
+      `https://openlibrary.org/search.json?q=${encodeURIComponent(searchQuery(value))}&limit=12&fields=key,title,author_name,cover_i,first_publish_year,isbn`,
+    );
+    if (!r.ok) throw new Error(`Search failed with status ${r.status}`);
+    const data = await r.json();
+    return (data.docs || []).map(toBookResult);
+  };
+
   const search = async () => {
     if (!query.trim()) return;
     setSearching(true);
     setSearchError("");
     setResults([]);
     try {
-      const r = await fetch(
-        `https://openlibrary.org/search.json?q=${encodeURIComponent(searchQuery(query.trim()))}&limit=12&fields=key,title,author_name,cover_i,first_publish_year,isbn`,
-      );
-      if (!r.ok) throw new Error(`Search failed with status ${r.status}`);
-      const data = await r.json();
-      const items = (data.docs || []).map(toBookResult);
+      const items = await searchBooks(query.trim());
       setResults(items);
       if (items.length === 0) {
         setSearchError("No books found. Try a different search.");
@@ -126,18 +179,7 @@ export default function BookShelfLibrary() {
   };
 
   const addBook = (item) => {
-    const info = item.volumeInfo || {};
-    const isbnObj =
-      (info.industryIdentifiers || []).find((id) => id.type === "ISBN_13") ||
-      (info.industryIdentifiers || [])[0];
-    const book = {
-      id: item.id,
-      title: info.title || "Untitled",
-      authors: info.authors || [],
-      thumbnail: secureImg(info.imageLinks?.thumbnail),
-      publishedDate: info.publishedDate || "",
-      isbn: isbnObj?.identifier || "",
-    };
+    const book = bookFromResult(item);
     if (books.some((b) => b.id === book.id)) return;
     persist([...books, book]);
     setView("shelf");
@@ -145,10 +187,42 @@ export default function BookShelfLibrary() {
     setResults([]);
   };
 
+  const updateStatus = (id, status) => {
+    persist(books.map((book) => (book.id === id ? {...book, status} : book)));
+    setSelected((book) => (book ? {...book, status} : book));
+  };
+
   const removeBook = (id) => {
     persist(books.filter((b) => b.id !== id));
     setSelected(null);
   };
+
+  useEffect(() => {
+    if (!loaded) return;
+    const isbn = getUrlIsbn();
+    if (
+      !isbn ||
+      books.some((book) => book.isbn?.replace(/[-\s]/g, "") === isbn)
+    ) {
+      return;
+    }
+    searchBooks(isbn)
+      .then((items) => {
+        if (items[0] && !books.some((book) => book.id === items[0].id)) {
+          persist([...books, bookFromResult(items[0])]);
+        }
+      })
+      .catch(() => setSearchError("Could not add the book from this ISBN."));
+  }, [loaded]);
+
+  const visibleBooks =
+    view === "to-read"
+      ? books.filter((book) => book.status !== "read")
+      : view === "read"
+        ? books.filter((book) => book.status === "read")
+        : books;
+  const viewLabel =
+    view === "to-read" ? "To read" : view === "read" ? "Read" : "Your shelf";
 
   return (
     <div className="min-h-screen w-full" style={{background: COLORS.bg}}>
@@ -162,10 +236,10 @@ export default function BookShelfLibrary() {
           <h1
             className="font-spine text-2xl tracking-tight"
             style={{color: COLORS.text}}>
-            Your shelf
+            {viewLabel}
           </h1>
           <div
-            className="flex rounded-full p-1"
+            className="flex flex-wrap justify-end rounded-full p-1"
             style={{background: COLORS.panel}}>
             <button
               onClick={() => setView("shelf")}
@@ -185,10 +259,29 @@ export default function BookShelfLibrary() {
               }}>
               Add
             </button>
+            <button
+              onClick={() => setView("to-read")}
+              className="px-4 py-1.5 rounded-full text-sm transition"
+              style={{
+                background: view === "to-read" ? COLORS.accent : "transparent",
+                color:
+                  view === "to-read" ? COLORS.accentText : COLORS.textMuted,
+              }}>
+              To read
+            </button>
+            <button
+              onClick={() => setView("read")}
+              className="px-4 py-1.5 rounded-full text-sm transition"
+              style={{
+                background: view === "read" ? COLORS.accent : "transparent",
+                color: view === "read" ? COLORS.accentText : COLORS.textMuted,
+              }}>
+              Read
+            </button>
           </div>
         </div>
 
-        {view === "shelf" && (
+        {view !== "add" && (
           <>
             {!loaded ? (
               <div
@@ -196,11 +289,15 @@ export default function BookShelfLibrary() {
                 style={{color: COLORS.textMuted}}>
                 <Loader2 className="animate-spin" size={20} />
               </div>
-            ) : books.length === 0 ? (
+            ) : visibleBooks.length === 0 ? (
               <div className="flex flex-col items-center text-center py-20">
                 <BookOpen className="mb-4" size={32} color={COLORS.wood} />
                 <p className="mb-5" style={{color: COLORS.textMuted}}>
-                  Your shelf is empty. Add your first book to get started.
+                  {view === "read"
+                    ? "You have not marked any books as read yet."
+                    : view === "to-read"
+                      ? "Your to-read list is empty."
+                      : "Your shelf is empty. Add your first book to get started."}
                 </p>
                 <button
                   onClick={() => setView("add")}
@@ -217,7 +314,7 @@ export default function BookShelfLibrary() {
                     borderBottom: `10px solid ${COLORS.wood}`,
                     borderRadius: "2px",
                   }}>
-                  {books.map((book) => {
+                  {visibleBooks.map((book) => {
                     const h = hashString(book.id || book.title);
                     const color = SPINES[h % SPINES.length];
                     const height = 130 + (h % 5) * 12;
@@ -246,8 +343,9 @@ export default function BookShelfLibrary() {
                 <p
                   className="text-xs mt-3 px-2"
                   style={{color: COLORS.textFaint}}>
-                  {books.length} book{books.length === 1 ? "" : "s"} on the
-                  shelf
+                  {visibleBooks.length} book
+                  {visibleBooks.length === 1 ? "" : "s"}
+                  {view === "shelf" ? " on the shelf" : ""}
                 </p>
               </div>
             )}
@@ -267,7 +365,6 @@ export default function BookShelfLibrary() {
               />
               <button
                 onClick={search}
-                disabled={searching}
                 className="w-10 h-10 rounded-full flex items-center justify-center shrink-0"
                 style={{background: COLORS.accent, color: COLORS.accentText}}>
                 {searching ? (
@@ -389,8 +486,27 @@ export default function BookShelfLibrary() {
               </div>
             </div>
             <button
-              onClick={() => removeBook(selected.id)}
+              onClick={() =>
+                updateStatus(
+                  selected.id,
+                  selected.status === "read" ? "to-read" : "read",
+                )
+              }
               className="mt-5 w-full py-2 rounded-full text-sm flex items-center justify-center gap-2"
+              style={{background: COLORS.accent, color: COLORS.accentText}}>
+              {selected.status === "read" ? (
+                <>
+                  <RotateCcw size={14} /> Move to to-read
+                </>
+              ) : (
+                <>
+                  <Check size={14} /> Mark as read
+                </>
+              )}
+            </button>
+            <button
+              onClick={() => removeBook(selected.id)}
+              className="mt-2 w-full py-2 rounded-full text-sm flex items-center justify-center gap-2"
               style={{background: COLORS.dangerBg, color: COLORS.danger}}>
               <Trash2 size={14} /> Remove from shelf
             </button>
