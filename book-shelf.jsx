@@ -230,7 +230,7 @@ export default function BookShelfLibrary() {
                         style={{background: color.bg, width: 34, height}}
                         title={book.title}>
                         <span
-                          className="font-spine text-xs leading-tight px-2 pb-3 whitespace-nowrap"
+                          className="font-spine text-xs leading-tight px-2 pt-3 whitespace-nowrap"
                           style={{
                             color: color.text,
                             writingMode: "vertical-rl",
