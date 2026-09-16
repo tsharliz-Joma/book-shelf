@@ -24,6 +24,8 @@ const SPINES = [
   {bg: "#4C6B8A", text: "#F3EFE6"},
 ];
 
+const STORAGE_KEY = "books";
+
 function hashString(str) {
   let hash = 0;
   for (let i = 0; i < str.length; i++) {
@@ -79,28 +81,22 @@ export default function BookShelfLibrary() {
   const [saveError, setSaveError] = useState("");
 
   useEffect(() => {
-    (async () => {
-      try {
-        const res = await window.storage.get("books", false);
-        const parsed = res && res.value ? JSON.parse(res.value) : [];
-        setBooks(Array.isArray(parsed) ? parsed : []);
-      } catch (e) {
-        setBooks([]);
-      } finally {
-        setLoaded(true);
-      }
-    })();
+    try {
+      const stored = window.localStorage.getItem(STORAGE_KEY);
+      const parsed = stored ? JSON.parse(stored) : [];
+      setBooks(Array.isArray(parsed) ? parsed : []);
+    } catch (e) {
+      setBooks([]);
+    } finally {
+      setLoaded(true);
+    }
   }, []);
 
-  const persist = useCallback(async (nextBooks) => {
+  const persist = useCallback((nextBooks) => {
     setBooks(nextBooks);
     try {
-      const res = await window.storage.set(
-        "books",
-        JSON.stringify(nextBooks),
-        false,
-      );
-      setSaveError(res ? "" : "Could not save that. Try again.");
+      window.localStorage.setItem(STORAGE_KEY, JSON.stringify(nextBooks));
+      setSaveError("");
     } catch (e) {
       setSaveError("Could not save that. Try again.");
     }
