@@ -153,9 +153,8 @@ export default function BookShelfLibrary() {
   return (
     <div className="min-h-screen w-full" style={{background: COLORS.bg}}>
       <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Bitter:wght@500;600;700&family=Inter:wght@400;500;600&display=swap');
-        .font-spine { font-family: 'Bitter', Georgia, serif; }
-        .font-ui { font-family: 'Inter', system-ui, sans-serif; }
+        .font-spine { font-family: 'Roboto', sans-serif; }
+        .font-ui { font-family: 'Roboto', sans-serif; }
       `}</style>
 
       <div className="max-w-2xl mx-auto px-5 py-8 font-ui">
@@ -230,7 +229,7 @@ export default function BookShelfLibrary() {
                         style={{background: color.bg, width: 34, height}}
                         title={book.title}>
                         <span
-                          className="font-spine text-xs leading-tight px-2 pt-3 whitespace-nowrap"
+                          className="font-spine text-xs font-bold leading-tight px-2 pt-3 whitespace-nowrap"
                           style={{
                             color: color.text,
                             writingMode: "vertical-rl",
