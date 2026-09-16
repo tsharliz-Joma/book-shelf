@@ -43,6 +43,30 @@ function searchQuery(value) {
   return /^(?:\d{10}|\d{13})$/.test(compact) ? `isbn:${compact}` : value;
 }
 
+function toBookResult(doc) {
+  return {
+    id:
+      doc.key ||
+      doc.cover_edition_key ||
+      `${doc.title}-${doc.first_publish_year || ""}`,
+    volumeInfo: {
+      title: doc.title || "Untitled",
+      authors: doc.author_name || [],
+      imageLinks: doc.cover_i
+        ? {
+            thumbnail: `https://covers.openlibrary.org/b/id/${doc.cover_i}-M.jpg`,
+          }
+        : undefined,
+      publishedDate: doc.first_publish_year
+        ? String(doc.first_publish_year)
+        : "",
+      industryIdentifiers: doc.isbn?.[0]
+        ? [{type: "ISBN", identifier: doc.isbn[0]}]
+        : [],
+    },
+  };
+}
+
 export default function BookShelfLibrary() {
   const [view, setView] = useState("shelf");
   const [books, setBooks] = useState([]);
@@ -89,11 +113,13 @@ export default function BookShelfLibrary() {
     setResults([]);
     try {
       const r = await fetch(
-        `https://www.googleapis.com/books/v1/volumes?q=${encodeURIComponent(searchQuery(query.trim()))}&maxResults=12`,
+        `https://openlibrary.org/search.json?q=${encodeURIComponent(searchQuery(query.trim()))}&limit=12&fields=key,title,author_name,cover_i,first_publish_year,isbn`,
       );
+      if (!r.ok) throw new Error(`Search failed with status ${r.status}`);
       const data = await r.json();
-      setResults(data.items || []);
-      if (!data.items || data.items.length === 0) {
+      const items = (data.docs || []).map(toBookResult);
+      setResults(items);
+      if (items.length === 0) {
         setSearchError("No books found. Try a different search.");
       }
     } catch (e) {
