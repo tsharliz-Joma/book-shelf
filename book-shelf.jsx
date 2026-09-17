@@ -8,6 +8,7 @@ import {
   Trash2,
   Check,
   RotateCcw,
+  Menu,
 } from "lucide-react";
 
 const COLORS = {
@@ -128,6 +129,7 @@ export default function BookShelfLibrary() {
   const [searching, setSearching] = useState(false);
   const [searchError, setSearchError] = useState("");
   const [saveError, setSaveError] = useState("");
+  const [menuOpen, setMenuOpen] = useState(false);
 
   useEffect(() => {
     try {
@@ -243,7 +245,7 @@ export default function BookShelfLibrary() {
             {viewLabel}
           </h1>
           <div
-            className="flex flex-wrap justify-end rounded-full p-1"
+            className="hidden md:flex rounded-full p-1"
             style={{background: COLORS.panel}}>
             <button
               onClick={() => setView("shelf")}
@@ -282,6 +284,46 @@ export default function BookShelfLibrary() {
               }}>
               Read
             </button>
+          </div>
+          <div className="relative md:hidden">
+            <button
+              onClick={() => setMenuOpen((open) => !open)}
+              aria-label="Open navigation menu"
+              aria-expanded={menuOpen}
+              className="w-10 h-10 rounded-full flex items-center justify-center"
+              style={{background: COLORS.panel, color: COLORS.text}}>
+              <Menu size={20} />
+            </button>
+            {menuOpen && (
+              <div
+                className="absolute right-0 top-12 z-40 rounded-xl p-1 w-36 shadow-lg"
+                style={{background: COLORS.panel}}>
+                {[
+                  ["shelf", "Shelf"],
+                  ["add", "Add"],
+                  ["to-read", "To read"],
+                  ["read", "Read"],
+                ].map(([nextView, label]) => (
+                  <button
+                    key={nextView}
+                    onClick={() => {
+                      setView(nextView);
+                      setMenuOpen(false);
+                    }}
+                    className="block w-full text-left px-3 py-2 rounded-lg text-sm"
+                    style={{
+                      background:
+                        view === nextView ? COLORS.accent : "transparent",
+                      color:
+                        view === nextView
+                          ? COLORS.accentText
+                          : COLORS.textMuted,
+                    }}>
+                    {label}
+                  </button>
+                ))}
+              </div>
+            )}
           </div>
         </div>
 
