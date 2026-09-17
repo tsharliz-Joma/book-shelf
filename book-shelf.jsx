@@ -8,7 +8,11 @@ import {
   Trash2,
   Check,
   RotateCcw,
+  RefreshCw,
+  Maximize2,
   Menu,
+  CalendarDays,
+  PlusCircle,
 } from "lucide-react";
 
 const COLORS = {
@@ -39,6 +43,12 @@ const SPINES = [
 ];
 
 const STORAGE_KEY = "books";
+const CREATIVE_UPDATES_KEY = "creative-updates";
+const CREATIVE_SIZES = [
+  {size: "300x250", label: "Medium rectangle", path: "/creatives/300x250/index.html"},
+  {size: "300x600", label: "Half page", path: "/creatives/300x600/index.html"},
+  {size: "970x250", label: "Billboard", path: "/creatives/970x250/index.html"},
+];
 
 function hashString(str) {
   let hash = 0;
@@ -130,6 +140,13 @@ export default function BookShelfLibrary() {
   const [searchError, setSearchError] = useState("");
   const [saveError, setSaveError] = useState("");
   const [menuOpen, setMenuOpen] = useState(false);
+  const [creativeUpdates, setCreativeUpdates] = useState({});
+  const [creativeNote, setCreativeNote] = useState("");
+  const [creativeReplay, setCreativeReplay] = useState({});
+  const [expandedCreative, setExpandedCreative] = useState(null);
+  const [viewportWidth, setViewportWidth] = useState(
+    typeof window === "undefined" ? 1024 : window.innerWidth,
+  );
 
   useEffect(() => {
     try {
@@ -145,6 +162,14 @@ export default function BookShelfLibrary() {
     } finally {
       setLoaded(true);
     }
+  }, []);
+
+  useEffect(() => {
+    const handleResize = () => {
+      setViewportWidth(window.innerWidth);
+    };
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
   }, []);
 
   const persist = useCallback((nextBooks) => {
@@ -221,6 +246,33 @@ export default function BookShelfLibrary() {
       .catch(() => setSearchError("Could not add the book from this ISBN."));
   }, [loaded]);
 
+  useEffect(() => {
+    try {
+      const stored = window.localStorage.getItem(CREATIVE_UPDATES_KEY);
+      const parsed = stored ? JSON.parse(stored) : {};
+      setCreativeUpdates(parsed && typeof parsed === "object" ? parsed : {});
+    } catch (e) {
+      setCreativeUpdates({});
+    }
+  }, []);
+
+  const addCreativeUpdate = (size) => {
+    const note = creativeNote.trim();
+    if (!note) return;
+    const update = {
+      id: `${Date.now()}-${size}`,
+      note,
+      date: new Date().toISOString(),
+    };
+    const next = {
+      ...creativeUpdates,
+      [size]: [update, ...(creativeUpdates[size] || [])],
+    };
+    setCreativeUpdates(next);
+    window.localStorage.setItem(CREATIVE_UPDATES_KEY, JSON.stringify(next));
+    setCreativeNote("");
+  };
+
   const visibleBooks =
     view === "to-read"
       ? books.filter((book) => book.status !== "read")
@@ -228,7 +280,27 @@ export default function BookShelfLibrary() {
         ? books.filter((book) => book.status === "read")
         : books;
   const viewLabel =
-    view === "to-read" ? "To read" : view === "read" ? "Read" : "Your shelf";
+    view === "to-read"
+      ? "To read"
+      : view === "read"
+        ? "Read"
+        : view === "creatives"
+          ? "Creatives"
+          : "Your shelf";
+
+  const expandedSize = expandedCreative
+    ? CREATIVE_SIZES.find((creative) => creative.size === expandedCreative)
+    : null;
+  const expandedWidth = expandedSize?.size === "970x250" ? 970 : 300;
+  const expandedHeight = expandedSize?.size === "300x600" ? 600 : 250;
+  const expandedFrameHeight = expandedHeight + 75;
+  const expandedScale = expandedSize
+    ? Math.min(
+        1,
+        (window.innerWidth - 48) / expandedWidth,
+        (window.innerHeight - 150) / expandedFrameHeight,
+      )
+    : 1;
 
   return (
     <div className="min-h-screen w-full" style={{background: COLORS.bg}}>
@@ -237,7 +309,8 @@ export default function BookShelfLibrary() {
         .font-ui { font-family: 'Roboto', sans-serif; }
       `}</style>
 
-      <div className="max-w-2xl mx-auto px-5 py-8 font-ui">
+      <div
+        className={`${view === "creatives" ? "w-full" : "max-w-2xl mx-auto"} px-5 py-8 font-ui`}>
         <div className="flex items-center justify-between mb-8">
           <h1
             className="font-spine text-2xl tracking-tight"
@@ -284,6 +357,15 @@ export default function BookShelfLibrary() {
               }}>
               Read
             </button>
+            <button
+              onClick={() => setView("creatives")}
+              className="px-4 py-1.5 rounded-full text-sm transition"
+              style={{
+                background: view === "creatives" ? COLORS.accent : "transparent",
+                color: view === "creatives" ? COLORS.accentText : COLORS.textMuted,
+              }}>
+              Creatives
+            </button>
           </div>
           <div className="relative md:hidden">
             <button
@@ -303,6 +385,7 @@ export default function BookShelfLibrary() {
                   ["add", "Add"],
                   ["to-read", "To read"],
                   ["read", "Read"],
+                  ["creatives", "Creatives"],
                 ].map(([nextView, label]) => (
                   <button
                     key={nextView}
@@ -326,6 +409,143 @@ export default function BookShelfLibrary() {
             )}
           </div>
         </div>
+
+        {view === "creatives" && (
+          <div className="space-y-5">
+            <p className="text-sm" style={{color: COLORS.textMuted}}>
+              Creative previews and production notes, grouped by ad size.
+            </p>
+            {CREATIVE_SIZES.map((creative) => {
+              const updates = creativeUpdates[creative.size] || [];
+              const previewWidth = creative.size === "970x250" ? 970 : 300;
+              const previewHeight = creative.size === "300x600" ? 600 : 250;
+              const timelineHeight = 75;
+              const previewFrameHeight = previewHeight + timelineHeight;
+              const previewScale = Math.min(1, (viewportWidth - 64) / previewWidth);
+              return (
+                <section
+                  key={creative.size}
+                  className="overflow-hidden rounded-2xl"
+                  style={{background: COLORS.panel}}>
+                  <div className="p-4 flex items-center justify-between gap-3">
+                    <div>
+                      <h2 className="font-spine text-lg font-bold" style={{color: COLORS.text}}>
+                        {creative.size}
+                      </h2>
+                      <p className="text-xs" style={{color: COLORS.textMuted}}>
+                        {creative.label}
+                      </p>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <button
+                        onClick={() => setExpandedCreative(creative.size)}
+                        aria-label={`View full ${creative.size} creative`}
+                        title="View full creative"
+                        className="w-8 h-8 rounded-full flex items-center justify-center"
+                        style={{background: COLORS.panelAlt, color: COLORS.textMuted}}>
+                        <Maximize2 size={15} />
+                      </button>
+                      <button
+                        onClick={() =>
+                          setCreativeReplay((current) => ({
+                            ...current,
+                            [creative.size]: (current[creative.size] || 0) + 1,
+                          }))
+                        }
+                        aria-label={`Replay ${creative.size} creative`}
+                        title="Replay creative"
+                        className="w-8 h-8 rounded-full flex items-center justify-center"
+                        style={{background: COLORS.panelAlt, color: COLORS.textMuted}}>
+                        <RefreshCw size={15} />
+                      </button>
+                      <a
+                        href={creative.path}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="text-xs px-3 py-1.5 rounded-full"
+                        style={{background: COLORS.panelAlt, color: COLORS.textMuted}}>
+                        Open ad
+                      </a>
+                    </div>
+                  </div>
+                  <div className="grid md:grid-cols-[minmax(0,1fr)_minmax(220px,0.8fr)] gap-4 p-4 pt-0">
+                    <div
+                      className={`flex items-start justify-center overflow-hidden rounded-xl w-full ${creative.size === "970x250" ? "md:col-span-2" : ""}`}
+                      style={{
+                        background: "#10131A",
+                        height: previewFrameHeight * previewScale,
+                      }}>
+                      <div
+                        style={{
+                          width: previewWidth * previewScale,
+                          height: previewFrameHeight * previewScale,
+                          flexShrink: 0,
+                        }}>
+                        <iframe
+                          key={`${creative.size}-${creativeReplay[creative.size] || 0}`}
+                          src={creative.path}
+                          title={`${creative.size} creative preview`}
+                          loading="lazy"
+                          scrolling="no"
+                          style={{
+                            width: previewWidth,
+                            height: previewFrameHeight,
+                            border: 0,
+                            transform: `scale(${previewScale})`,
+                            transformOrigin: "top left",
+                          }}
+                        />
+                      </div>
+                    </div>
+                    <div>
+                      <div className="flex items-center gap-2 mb-3">
+                        <CalendarDays size={15} color={COLORS.accent} />
+                        <h3 className="text-sm font-bold" style={{color: COLORS.text}}>
+                          Timeline
+                        </h3>
+                      </div>
+                      <div className="flex gap-2 mb-3">
+                        <input
+                          value={creativeNote}
+                          onChange={(event) => setCreativeNote(event.target.value)}
+                          onKeyDown={(event) => {
+                            if (event.key === "Enter") addCreativeUpdate(creative.size);
+                          }}
+                          placeholder="Add an update"
+                          className="min-w-0 flex-1 px-3 py-2 rounded-lg text-sm outline-none"
+                          style={{background: COLORS.panelAlt, color: COLORS.text}}
+                        />
+                        <button
+                          onClick={() => addCreativeUpdate(creative.size)}
+                          aria-label={`Add update to ${creative.size}`}
+                          className="w-9 h-9 rounded-lg flex items-center justify-center shrink-0"
+                          style={{background: COLORS.accent, color: COLORS.accentText}}>
+                          <PlusCircle size={16} />
+                        </button>
+                      </div>
+                      {updates.length === 0 ? (
+                        <p className="text-xs" style={{color: COLORS.textFaint}}>
+                          No updates yet.
+                        </p>
+                      ) : (
+                        <div className="space-y-3">
+                          {updates.map((update) => (
+                            <div key={update.id} className="border-l-2 pl-3" style={{borderColor: COLORS.accent}}>
+                              <p className="text-sm" style={{color: COLORS.text}}>{update.note}</p>
+                              <p className="text-xs mt-1" style={{color: COLORS.textFaint}}>
+                                {new Date(update.date).toLocaleDateString()}
+                              </p>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </section>
+              );
+            })}
+          </div>
+        )}
 
         {view !== "add" && (
           <>
@@ -555,6 +775,41 @@ export default function BookShelfLibrary() {
               className="mt-2 w-full py-2 rounded-full text-sm flex items-center justify-center gap-2"
               style={{background: COLORS.dangerBg, color: COLORS.danger}}>
               <Trash2 size={14} /> Remove from shelf
+            </button>
+          </div>
+        </div>
+      )}
+
+      {expandedSize && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center p-6"
+          style={{background: "rgba(0,0,0,0.82)"}}
+          onClick={() => setExpandedCreative(null)}>
+          <div
+            className="relative"
+            style={{
+              width: expandedWidth * expandedScale,
+              height: expandedFrameHeight * expandedScale,
+            }}
+            onClick={(event) => event.stopPropagation()}>
+            <iframe
+              key={`${expandedSize.size}-${creativeReplay[expandedSize.size] || 0}`}
+              src={expandedSize.path}
+              title={`${expandedSize.size} full creative preview`}
+              style={{
+                width: expandedWidth,
+                height: expandedFrameHeight,
+                border: 0,
+                transform: `scale(${expandedScale})`,
+                transformOrigin: "top left",
+              }}
+            />
+            <button
+              onClick={() => setExpandedCreative(null)}
+              aria-label="Close full creative preview"
+              className="absolute -right-3 -top-3 w-9 h-9 rounded-full flex items-center justify-center"
+              style={{background: COLORS.accent, color: COLORS.accentText}}>
+              <X size={18} />
             </button>
           </div>
         </div>

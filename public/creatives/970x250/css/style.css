@@ -1,0 +1,394 @@
+:root {
+--foreground: #FFF;
+--background: #001080;
+--cover: #FFF;
+--border: #000;
+
+	/* --green: #00AD20; */
+}
+
+.width {
+	width: 970px;
+}
+
+.height {
+	height: 250px;
+}
+
+body, body * {
+	vertical-align: baseline;
+	border: 0 none;
+	outline: 0;
+	padding: 0;
+	margin: 0;
+	box-sizing: border-box;
+	text-size-adjust: none;
+	-moz-osx-font-smoothing: grayscale;
+	text-rendering: geometricPrecision;
+	perspective: 1000px;
+-moz-user-select: none;
+user-select: none;
+	-webkit-tap-highlight-color: transparent;
+}
+
+body {
+	color: var(--foreground);
+	background-color: var(--cover);
+}
+
+sup {
+	position: relative;
+	top: -0.57em;
+	font-size: 0.58em;
+}
+
+small {
+	font-size: 60%;
+}
+
+.cover {
+	background-color: var(--cover);
+}
+
+#background {
+	position: absolute;
+	left: 0;
+	top: 0;
+	cursor: pointer;
+	pointer-events: auto;
+}
+
+#ad {
+	position: absolute;
+	left: 0;
+	top: 0;
+	display: block;
+	opacity: 0;
+	overflow: hidden;
+	pointer-events: none;
+}
+
+.border {
+	position: absolute;
+	top: 0;
+	left: 0;
+	border: 1px solid var(--border);
+	opacity: 0;
+	cursor: pointer;
+	pointer-events: none;
+}
+
+.panel_background {
+	width: 100%;
+	height: 100%;
+}
+
+#colored_panel {
+	position: absolute;
+	top: 0px;
+	left: 0px;
+	margin: 24px 0px 0px 0px;
+	width: 200px;
+	height: 200px;
+	overflow: hidden;
+	background-size: cover;
+	/* background-image: url("../images/red_tri.png"); */
+}
+
+#colored_panel_2 {
+	position: absolute;
+	top: 0px;
+	left: 0px;
+	margin: 24px 0px 0px 0px;
+	width: 200px;
+	height: 200px;
+	overflow: hidden;
+	background-size: cover;
+	/* background-image: url("../images/blue_tri.png"); */
+}
+
+.hero-1 {
+    position: absolute;
+    top: 42px;
+    left: 55px;
+	width: 244px;
+	height: 189px;
+}
+
+.hero-2 {
+	position: absolute;
+	top: 42px;
+	left: 55px;
+	width: 244px;
+	height: 197px;
+}
+
+.presents {
+	position: absolute;
+	top: 0px;
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	text-align: center;
+}
+
+.present {
+    position: absolute;
+    top: 56px;
+    left: 603px;
+}
+
+#p1 {
+	width: 133.18px;
+	height: auto;
+}
+
+#p2 {
+	top: 40px;
+    left: 588px;
+    width: 160.88px;
+	height: auto;
+}
+
+#p3 {
+	top: 40px;
+    left: 589px;
+    width: 161.29px;
+	height: auto;
+}
+
+#p4 {
+	top: 50px;
+    left: 602px;
+    width: 138.24px;
+    height: auto;
+}
+
+.container {
+	position: absolute;
+	top: 0px;
+	left: 0px;
+	width: 970px;
+	height: 250px;
+	display: flex;
+	flex-direction: column;
+	justify-content: center;
+	align-items: center;
+	text-align: left;
+}
+	.container .copy {
+		position: absolute;
+		top: 90px;
+		left: 96px;
+	}
+
+
+.copy {
+    position: absolute;
+    top: 96px;
+    left: 173px;
+    width: 300px;
+    height: auto;
+    font-family: "OfficeworksPrint";
+}
+
+#copy-1 {
+	position: absolute;
+	top: 90px;
+	left: 103px;
+	width: 100%;
+	font-size: 46px;
+	line-height: 120%;
+}
+
+#c2 {
+	position: absolute;
+    top: 89px;
+    right: 103px;
+    width: 300px;
+    height: 105px;
+    display: flex;
+    justify-content: flex-end;
+    text-align: center;
+    font-size: 46px;
+    line-height: 120%;
+}
+
+#c3 {
+	position: absolute;
+    top: 183px;
+    left: 0px;
+    display: flex;
+    justify-content: center;
+    width: 970px;
+    font-size: 19px;
+}
+
+#copy-2,
+#copy-3
+ {
+	position: absolute;
+	top: 26px;
+	left: 489px;
+	font-size: 35px;
+    line-height: 110%;
+    font-family: 'OfficeworksPrint Book';
+}
+
+#copy-4-container {
+	position: absolute;
+	top: 69px;
+	left: 0px;
+	width: 970px;
+	height: fit-content;
+	display: flex;
+	justify-content: flex-start; 
+	align-items: center;
+	text-align: center;
+}
+
+#copy-4-text {
+	position: relative;
+	left: 91px;
+	font-size: 50px;
+	font-family: "OfficeworksPrint Book";
+	line-height: 100%;
+}
+
+.book {
+	font-family:"OfficeworksPrint";
+}
+
+#disclaimer {
+	position: absolute;
+	bottom: 14px;
+	left: 0px;
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	width: 970px;
+	height: 9px;
+	font-size: 10px;
+}
+
+
+#dash {
+	position: absolute;
+	top: 0px;
+	left: 0px;
+}
+
+#underline {
+    position: absolute;
+    top: 140px;
+    left: 183px;
+}
+
+.logo-container {
+	position: absolute;
+	display: flex;
+	justify-content: center;
+	align-items: flex-start;
+	text-align: center;
+	width: 970px;
+	height: 9px;
+	top: 29px;
+	left: 0px;
+	
+}
+	#logo-officeworks {
+		position: relative;
+	}
+	
+.cta {
+    position: absolute;
+    top: 165px;
+	right: 22px;
+    border: 1.5px solid #ffffff;
+    color: #ffffff;
+    border-radius: 6.5px;
+    width: 190px;
+    height: 47px;
+}
+
+.cta-bg {
+	border-radius: 6.5px;
+	padding: 7px 0px 0px 43px;
+}
+
+.cta-copy {
+	font-size: 18px;
+	line-height: 165%;
+	font-weight: 600;
+	position: relative;
+	left: 10px;
+}
+
+
+.price-container {
+	position: absolute;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	top: 28px;
+	left: 324px;
+	width: 147px;
+	height: 66px; 
+	font-size: 53px;
+	float: left;
+	font-family: 'OfficeworksWeb';
+}
+
+.price-content {
+	position: absolute;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	background-color: white;
+	border: 2.36px solid #DA192E;
+	width: 100%;
+	height: 100%; 
+	color: #001080;
+	/* overflow: hidden; */
+}
+
+#dollar {
+	position: relative;
+	top: -8px;
+	font-size: 50%;
+}
+
+.face {
+	position: absolute;
+	top: 5px;
+	right: 0px;
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	text-align: center;
+	line-height: 100%;
+	width: 100%;
+	height: 100%;
+}
+
+.cents {
+	position: relative;
+    top: 5px;
+	left: 1px;
+    font-size: 60%;
+}
+
+.centsAmount {
+	position: relative;
+    top: -8px;
+	left: 3px;
+    font-size: 60%;
+}
+
+
+:focus {
+	outline:none;
+}
+  
+  
+  
