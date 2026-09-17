@@ -60,11 +60,14 @@ function setupTimeline() {
   var timelineClickTag;
 
   magic = Math.min(30, Math.max(1, (width - 20) / Math.max(tl.duration(), 15)));
-  document.body.style.cssText += "height:" + (height + 75) + "px;overflow:hidden;";
+  document.body.style.cssText +=
+    "height:" + (height + 75) + "px;overflow:hidden;";
 
   timelineBox = document.createElement("div");
   timelineBox.style.cssText =
-    "position:absolute;top:" + height + "px;left:0;width:100%;height:75px;display:block;background-color:#EEE";
+    "position:absolute;top:" +
+    height +
+    "px;left:0;width:100%;height:75px;display:block;background-color:#EEE";
   timelineBox.setAttribute("id", "tl-box");
 
   timelineScrub = document.createElement("div");

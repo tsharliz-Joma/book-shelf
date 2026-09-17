@@ -45,7 +45,11 @@ const SPINES = [
 const STORAGE_KEY = "books";
 const CREATIVE_UPDATES_KEY = "creative-updates";
 const CREATIVE_SIZES = [
-  {size: "300x250", label: "Medium rectangle", path: "/creatives/300x250/index.html"},
+  {
+    size: "300x250",
+    label: "Medium rectangle",
+    path: "/creatives/300x250/index.html",
+  },
   {size: "300x600", label: "Half page", path: "/creatives/300x600/index.html"},
   {size: "970x250", label: "Billboard", path: "/creatives/970x250/index.html"},
 ];
@@ -361,8 +365,10 @@ export default function BookShelfLibrary() {
               onClick={() => setView("creatives")}
               className="px-4 py-1.5 rounded-full text-sm transition"
               style={{
-                background: view === "creatives" ? COLORS.accent : "transparent",
-                color: view === "creatives" ? COLORS.accentText : COLORS.textMuted,
+                background:
+                  view === "creatives" ? COLORS.accent : "transparent",
+                color:
+                  view === "creatives" ? COLORS.accentText : COLORS.textMuted,
               }}>
               Creatives
             </button>
@@ -421,7 +427,10 @@ export default function BookShelfLibrary() {
               const previewHeight = creative.size === "300x600" ? 600 : 250;
               const timelineHeight = 75;
               const previewFrameHeight = previewHeight + timelineHeight;
-              const previewScale = Math.min(1, (viewportWidth - 64) / previewWidth);
+              const previewScale = Math.min(
+                1,
+                (viewportWidth - 64) / previewWidth,
+              );
               return (
                 <section
                   key={creative.size}
@@ -429,7 +438,9 @@ export default function BookShelfLibrary() {
                   style={{background: COLORS.panel}}>
                   <div className="p-4 flex items-center justify-between gap-3">
                     <div>
-                      <h2 className="font-spine text-lg font-bold" style={{color: COLORS.text}}>
+                      <h2
+                        className="font-spine text-lg font-bold"
+                        style={{color: COLORS.text}}>
                         {creative.size}
                       </h2>
                       <p className="text-xs" style={{color: COLORS.textMuted}}>
@@ -442,7 +453,10 @@ export default function BookShelfLibrary() {
                         aria-label={`View full ${creative.size} creative`}
                         title="View full creative"
                         className="w-8 h-8 rounded-full flex items-center justify-center"
-                        style={{background: COLORS.panelAlt, color: COLORS.textMuted}}>
+                        style={{
+                          background: COLORS.panelAlt,
+                          color: COLORS.textMuted,
+                        }}>
                         <Maximize2 size={15} />
                       </button>
                       <button
@@ -455,7 +469,10 @@ export default function BookShelfLibrary() {
                         aria-label={`Replay ${creative.size} creative`}
                         title="Replay creative"
                         className="w-8 h-8 rounded-full flex items-center justify-center"
-                        style={{background: COLORS.panelAlt, color: COLORS.textMuted}}>
+                        style={{
+                          background: COLORS.panelAlt,
+                          color: COLORS.textMuted,
+                        }}>
                         <RefreshCw size={15} />
                       </button>
                       <a
@@ -463,7 +480,10 @@ export default function BookShelfLibrary() {
                         target="_blank"
                         rel="noreferrer"
                         className="text-xs px-3 py-1.5 rounded-full"
-                        style={{background: COLORS.panelAlt, color: COLORS.textMuted}}>
+                        style={{
+                          background: COLORS.panelAlt,
+                          color: COLORS.textMuted,
+                        }}>
                         Open ad
                       </a>
                     </div>
@@ -500,39 +520,61 @@ export default function BookShelfLibrary() {
                     <div>
                       <div className="flex items-center gap-2 mb-3">
                         <CalendarDays size={15} color={COLORS.accent} />
-                        <h3 className="text-sm font-bold" style={{color: COLORS.text}}>
+                        <h3
+                          className="text-sm font-bold"
+                          style={{color: COLORS.text}}>
                           Timeline
                         </h3>
                       </div>
                       <div className="flex gap-2 mb-3">
                         <input
                           value={creativeNote}
-                          onChange={(event) => setCreativeNote(event.target.value)}
+                          onChange={(event) =>
+                            setCreativeNote(event.target.value)
+                          }
                           onKeyDown={(event) => {
-                            if (event.key === "Enter") addCreativeUpdate(creative.size);
+                            if (event.key === "Enter")
+                              addCreativeUpdate(creative.size);
                           }}
                           placeholder="Add an update"
                           className="min-w-0 flex-1 px-3 py-2 rounded-lg text-sm outline-none"
-                          style={{background: COLORS.panelAlt, color: COLORS.text}}
+                          style={{
+                            background: COLORS.panelAlt,
+                            color: COLORS.text,
+                          }}
                         />
                         <button
                           onClick={() => addCreativeUpdate(creative.size)}
                           aria-label={`Add update to ${creative.size}`}
                           className="w-9 h-9 rounded-lg flex items-center justify-center shrink-0"
-                          style={{background: COLORS.accent, color: COLORS.accentText}}>
+                          style={{
+                            background: COLORS.accent,
+                            color: COLORS.accentText,
+                          }}>
                           <PlusCircle size={16} />
                         </button>
                       </div>
                       {updates.length === 0 ? (
-                        <p className="text-xs" style={{color: COLORS.textFaint}}>
+                        <p
+                          className="text-xs"
+                          style={{color: COLORS.textFaint}}>
                           No updates yet.
                         </p>
                       ) : (
                         <div className="space-y-3">
                           {updates.map((update) => (
-                            <div key={update.id} className="border-l-2 pl-3" style={{borderColor: COLORS.accent}}>
-                              <p className="text-sm" style={{color: COLORS.text}}>{update.note}</p>
-                              <p className="text-xs mt-1" style={{color: COLORS.textFaint}}>
+                            <div
+                              key={update.id}
+                              className="border-l-2 pl-3"
+                              style={{borderColor: COLORS.accent}}>
+                              <p
+                                className="text-sm"
+                                style={{color: COLORS.text}}>
+                                {update.note}
+                              </p>
+                              <p
+                                className="text-xs mt-1"
+                                style={{color: COLORS.textFaint}}>
                                 {new Date(update.date).toLocaleDateString()}
                               </p>
                             </div>
