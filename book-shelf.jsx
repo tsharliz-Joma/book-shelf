@@ -31,6 +31,10 @@ const SPINES = [
   {bg: "#6B8F71", text: "#241D0F"},
   {bg: "#7A5C7E", text: "#F3EFE6"},
   {bg: "#4C6B8A", text: "#F3EFE6"},
+  {bg: "#385C59", text: "#F3EFE6"},
+  {bg: "#A85D3F", text: "#F3EFE6"},
+  {bg: "#8A7A45", text: "#241D0F"},
+  {bg: "#596B78", text: "#F3EFE6"},
 ];
 
 const STORAGE_KEY = "books";
